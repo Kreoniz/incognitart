@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
+import { Toaster, toast } from "react-hot-toast";
 
 export function DrawingPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -131,11 +132,11 @@ export function DrawingPage() {
 
       if (!res.ok) {
         const msg = await res.text();
-        alert(`Upload failed: ${msg}`);
+        toast.error(`Upload failed: ${msg}`);
         return;
       }
 
-      alert("Image saved!");
+      toast.success("Image saved!");
     }, "image/png");
   }
 
@@ -221,6 +222,8 @@ export function DrawingPage() {
           </form>
         </div>
       </div>
+
+      <Toaster />
     </div>
   );
 }
