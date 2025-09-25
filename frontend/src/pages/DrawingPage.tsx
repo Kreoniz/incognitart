@@ -4,7 +4,7 @@ export function DrawingPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [pixelAmount, setPixelAmount] = useState(10);
   const [gridEnabled, setGridEnabled] = useState(true);
-  const [pixelColor, setPixelColor] = useState("#000000");
+  const pixelColorRef = useRef("#000000");
 
   useEffect(() => {
     let pixelSize: number;
@@ -19,7 +19,6 @@ export function DrawingPage() {
     function resizeCanvas() {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      console.log(rect, canvas.width, canvas.height);
       pixelSize = Math.floor(rect.width / pixelAmount);
       canvas.width = rect.width - (rect.width % pixelSize);
       canvas.height = rect.height - (rect.height % pixelSize);
@@ -83,7 +82,7 @@ export function DrawingPage() {
       const gridX = Math.floor(mouseX / pixelSize);
       const gridY = Math.floor(mouseY / pixelSize);
 
-      drawPixel(gridX, gridY, pixelColor);
+      drawPixel(gridX, gridY, pixelColorRef.current);
     }
 
     function stop() {
@@ -102,7 +101,7 @@ export function DrawingPage() {
       canvas.removeEventListener("pointerup", stop);
       canvas.removeEventListener("pointerleave", stop);
     };
-  }, [pixelAmount, gridEnabled, pixelColor]);
+  }, [pixelAmount, gridEnabled]);
 
   return (
     <div>
@@ -119,12 +118,15 @@ export function DrawingPage() {
             <input
               type="color"
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                setPixelColor(e.target.value);
+                pixelColorRef.current = e.target.value;
               }}
             />
           </div>
 
-          <div>
+          <div className="flex flex-col items-center">
+            <span>
+              {pixelAmount}x{pixelAmount} pixels
+            </span>
             <input
               min={10}
               max={50}
@@ -137,13 +139,18 @@ export function DrawingPage() {
           </div>
 
           <div>
-            <input
-              type="checkbox"
-              checked={gridEnabled}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                setGridEnabled(e.target.checked);
-              }}
-            />
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <span className="text-sm">Grid</span>
+              <input
+                type="checkbox"
+                checked={gridEnabled}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  setGridEnabled(e.target.checked);
+                }}
+                className="peer sr-only"
+              />
+              <div className="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700 dark:peer-checked:bg-blue-600 dark:peer-focus:ring-blue-800"></div>
+            </label>
           </div>
         </div>
       </div>
