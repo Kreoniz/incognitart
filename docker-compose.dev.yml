@@ -1,5 +1,7 @@
 services:
   backend:
+    environment:
+      - UV_CACHE_DIR=/app/.cache/uv
     build:
       context: ./backend
       target: dev
@@ -8,6 +10,7 @@ services:
       - ./backend:/app
     stdin_open: true
     tty: true
+    user: "${UID:-1000}:${GID:-1000}"
 
   frontend:
     build:
@@ -17,6 +20,7 @@ services:
     ports: ["5173:5173"]
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+      # - /app/node_modules
     stdin_open: true
     tty: true
+    user: "${UID:-1000}:${GID:-1000}"

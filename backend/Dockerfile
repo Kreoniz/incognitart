@@ -4,9 +4,12 @@ COPY --from=docker.io/astral/uv:latest /uv /uvx /bin/
 WORKDIR /app
 COPY . .
 
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 RUN uv sync --locked
 
 EXPOSE 8000
 
 FROM base AS dev
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-exclude", ".venv/**"]
