@@ -1,8 +1,14 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 
 export function DrawingPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [pixelAmount, setPixelAmount] = useState(10);
+  const [pixelAmount, setPixelAmount] = useState(15);
   const [gridEnabled, setGridEnabled] = useState(true);
   const pixelColorRef = useRef("#000000");
 
@@ -103,55 +109,116 @@ export function DrawingPage() {
     };
   }, [pixelAmount, gridEnabled]);
 
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const formData = new FormData(e.currentTarget);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      formData.append("image", blob, "image.png");
+
+      const API_URL = import.meta.env.VITE_API_URL;
+
+      const res = await fetch(`${API_URL}/image`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        alert(`Upload failed: ${msg}`);
+        return;
+      }
+
+      alert("Image saved!");
+    }, "image/png");
+  }
+
   return (
     <div>
-      <h1 className="my-2 text-2xl font-bold">Drawing Page</h1>
-
       <div className="flex flex-col-reverse justify-center gap-4 sm:flex-row">
         <canvas
           className="aspect-square w-full max-w-[600px] min-w-[300px] border-2"
           ref={canvasRef}
         ></canvas>
 
-        <div className="flex items-center gap-4 sm:flex-col">
-          <div>
-            <input
-              type="color"
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                pixelColorRef.current = e.target.value;
-              }}
-            />
-          </div>
-
-          <div className="flex flex-col items-center">
-            <span>
-              {pixelAmount}x{pixelAmount} pixels
-            </span>
-            <input
-              min={10}
-              max={50}
-              value={pixelAmount}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setPixelAmount(Number(e.target.value))
-              }
-              type="range"
-            />
-          </div>
-
-          <div>
-            <label className="inline-flex cursor-pointer items-center gap-2">
-              <span className="text-sm">Grid</span>
+        <div>
+          <div className="mb-4 flex items-start gap-4 sm:flex-col">
+            <div className="flex items-center gap-2">
+              <span>Color:</span>
               <input
-                type="checkbox"
-                checked={gridEnabled}
+                type="color"
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  setGridEnabled(e.target.checked);
+                  pixelColorRef.current = e.target.value;
                 }}
-                className="peer sr-only"
               />
-              <div className="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700 dark:peer-checked:bg-blue-600 dark:peer-focus:ring-blue-800"></div>
-            </label>
+            </div>
+
+            <div className="flex w-full flex-col items-start">
+              <span>
+                {pixelAmount}x{pixelAmount} pixels
+              </span>
+              <input
+                className="w-full"
+                min={10}
+                max={50}
+                value={pixelAmount}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setPixelAmount(Number(e.target.value))
+                }
+                type="range"
+              />
+            </div>
+
+            <div>
+              <label className="inline-flex cursor-pointer items-center gap-2">
+                <span>Grid</span>
+                <input
+                  type="checkbox"
+                  checked={gridEnabled}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    setGridEnabled(e.target.checked);
+                  }}
+                  className="peer sr-only"
+                />
+                <div className="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700 dark:peer-checked:bg-blue-600 dark:peer-focus:ring-blue-800"></div>
+              </label>
+            </div>
           </div>
+
+          <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+            <label className="flex flex-col" htmlFor="authorName">
+              <span>Author name:</span>
+              <input
+                className="rounded border px-1"
+                id="authorName"
+                name="authorName"
+                type="text"
+              />
+            </label>
+
+            <label className="flex flex-col" htmlFor="imageName">
+              <span>Image name:</span>
+              <input
+                className="rounded border px-1"
+                id="imageName"
+                name="imageName"
+                type="text"
+              />
+            </label>
+
+            <button
+              className="rounded border p-2 text-center hover:cursor-pointer hover:bg-black/10 active:bg-black/20"
+              type="submit"
+            >
+              Publish image
+            </button>
+          </form>
         </div>
       </div>
     </div>
